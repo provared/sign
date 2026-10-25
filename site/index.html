@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Provared: sign a permission</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1><svg class="mark" viewBox="0 0 64 64" width="32" height="32" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="#8f000f"/><path d="M20 15 H37 L45 23 V49 H20 Z" fill="#ffffff"/><path d="M37 15 V23 H45" fill="none" stroke="#8f000f" stroke-width="2.5" stroke-linejoin="round"/><path d="M25 29 H40 M25 35 H36" stroke="#8f000f" stroke-width="2.5" stroke-linecap="round"/><path d="M24.5 43 C27 39, 29 46, 31.5 42.5 C34 39, 36 46, 40.5 41.5" fill="none" stroke="#8f000f" stroke-width="3" stroke-linecap="round"/></svg>Sign a permission</h1>
+  <p class="motto">Provared, draft version 0. Evidence, not a verdict.</p>
+  <p>This page signs a permission (a slip) with a passkey on this device, and gives you the signed file to keep. Everything happens in this browser: the page loads only its own files and sends nothing anywhere. The permission's words are yours; the page only checks that they are well formed and asks your passkey to sign them.</p>
+
+  <ol class="steps">
+    <li id="step1">
+      <h2>The permission's words</h2>
+      <p>The permission is written as JSON: the agent (its name and its two public keys, which the agent's software prints when it makes them), the actions it may take, the limits, the conditions, the stated rules, with whom, from when until when, and why. The text below is a starting point; change it to what you allow. If you opened this page from a link the agent's software printed, the starting point came with the link, with the agent's public keys in it: that part of the link stays in your browser and is never sent to any server. Names beginning <code>provared.</code> are from the format's shared list, so that any checker knows what they mean.</p>
+      <p><label for="fields">The permission, as JSON (every member except the issuer)</label></p>
+      <p><textarea id="fields" rows="24" spellcheck="false"></textarea></p>
+      <p><label for="issuer-name">Your name, as it is to be written in the permission (a label: only your passkey is checked)</label><br><input id="issuer-name" type="text" size="40" autocomplete="name"></p>
+      <p><button type="button" id="read">Read the permission</button></p>
+      <p id="read-status" role="status"></p>
+      <dl id="slip-words" hidden></dl>
+    </li>
+    <li id="step2" class="waiting">
+      <h2>Sign it with your passkey</h2>
+      <p>The first time on this device, your device asks twice: once to make a passkey for this website, and once to sign. The passkey is made for this website only and is kept by your device; this page remembers only its public key and identifier, in this browser, so that you can sign again later.</p>
+      <p><button type="button" id="sign" disabled>Sign this permission with a passkey</button></p>
+      <p id="sign-status" role="status"></p>
+      <p id="passkey-line" class="quiet" hidden>The thumbprint of your passkey, which whoever checks the record names as the passkey they trust (<code>--issuer</code>): <span class="mono" id="thumbprint"></span></p>
+    </li>
+    <li id="step3" class="waiting">
+      <h2>Keep the signed permission</h2>
+      <p id="save-status" role="status"></p>
+      <p id="save-line" hidden><button type="button" class="second" id="save">Save the signed permission as a file</button> Hand it to the agent's software: it is the first line of the agent's book.</p>
+      <p class="quiet" id="fingerprint-line" hidden>The permission's fingerprint, which every receipt under it names: <span class="mono" id="fingerprint"></span></p>
+    </li>
+  </ol>
+
+  <details class="more">
+    <summary>Cancel a permission you signed</summary>
+    <p>A cancellation is signed with the same passkey as the permission. Paste the permission's fingerprint, sign, and keep the file: hand it to the agent's software, which acknowledges it, and keep your own copy for a checker.</p>
+    <p><label for="cancel-of">The fingerprint of the permission to cancel</label><br><input id="cancel-of" type="text" size="48" spellcheck="false"></p>
+    <p><button type="button" id="cancel">Sign the cancellation with the passkey</button></p>
+    <p id="cancel-status" role="status"></p>
+    <p id="cancel-save-line" hidden><button type="button" class="second" id="cancel-save">Save the cancellation as a file</button></p>
+  </details>
+
+  <p class="quiet">What this page does not do: it does not check that the permission is wise, and it does not make the agent keep to it. The agent's software asks the check before acting and writes the receipts; a checker holds them against this permission. This page needs JavaScript and a device that can use passkeys on this website.</p>
+  <noscript><p>This page needs JavaScript.</p></noscript>
+</main>
+<script type="module" src="sign-page.js"></script>
+</body>
+</html>

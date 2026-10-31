@@ -181,7 +181,12 @@ const signerShape = (alg) =>
 function writtenSlhKey(item, where) {
   let made;
   try {
-    made = nodeCrypto.createPrivateKey(item);
+    // A Web Crypto CryptoKey of another method is refused here, without
+    // handing it to Node.js: createPrivateKey would turn it into a KeyObject
+    // of that method, refused below all the same, but handing it a CryptoKey
+    // is deprecated (DEP0203) and prints a warning.
+    if (typeof globalThis.CryptoKey === 'function' && item instanceof globalThis.CryptoKey && item.algorithm.name !== SLH) made = null;
+    else made = nodeCrypto.createPrivateKey(item);
   } catch {
     made = null; // not a private key Node.js can read, or no Node.js here
   }

@@ -8,7 +8,7 @@ export { checkBook, checkShow, openChecker, LIMITS } from './book.js';
 export { limitWords, conditionWords, neverWords } from './compare.js';
 export { REFUSAL_REASONS } from './service.js';
 export { DENIAL_SOURCES } from './denial.js';
-export { checkSlip } from './slip.js';
+export { checkSlip, isPageAddress } from './slip.js';
 export { keySetFingerprint } from './seal.js';
 export { blockFingerprint } from './blockstamp.js';
 export { checkHeaderChain, blocksInChain, MIN_BLOCKS_AFTER } from './headers.js';

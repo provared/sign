@@ -130,6 +130,7 @@ export function timeOf(bytes, element) {
     m = /^(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)Z$/.exec(text);
     if (m) m[1] = (Number(m[1]) < 50 ? '20' : '19') + m[1];
   } else if (element.tag === TAG.GENERALIZED_TIME) {
+    // eslint-disable-next-line security/detect-unsafe-regex -- no repetition inside repetition can match the same text two ways (fixed-length digits and one bounded fraction), so matching takes time in proportion to the input.
     m = /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(?:\.(\d{1,9}))?Z$/.exec(text);
     // DER allows no trailing zero in the fraction.
     if (m && m[7] && m[7].endsWith('0')) m = null;

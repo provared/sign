@@ -26,7 +26,7 @@ export const FINDING_CODES = Object.freeze([
   'not-json', 'bad-envelope', 'bad-base64url', 'too-large', 'unknown-type', 'bad-signatures-layout', 'payload-not-canonical',
   'payload-type-mismatch', 'bad-field', 'bad-key', 'signature-invalid', 'passkey-wrong-type', 'passkey-challenge-mismatch',
   'passkey-origin-mismatch', 'passkey-rpid-mismatch', 'passkey-user-not-present', 'passkey-user-not-verified', 'passkey-bad-data',
-  'issuer-not-expected', 'slip-missing', 'slip-unusable', 'chain-broken', 'time-went-backwards', 'duplicate-id', 'duplicate-slip',
+  'issuer-not-expected', 'issuer-origin-not-expected', 'slip-missing', 'slip-unusable', 'chain-broken', 'time-went-backwards', 'duplicate-id', 'duplicate-slip',
   'countersignature-invalid', 'countersignature-wrong-stub', 'countersignature-not-possible', 'line-not-canonical', 'unknown-entry',
   'approval-mismatch', 'approval-reused', 'approval-invalid', 'approval-not-found', 'approval-dated-after-stub', 'terms-not-found',
   'terms-unusable', 'terms-mismatch', 'pass-missing', 'pass-mismatch', 'pass-too-deep', 'cover-invalid', 'cancellation-invalid',

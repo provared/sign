@@ -23,7 +23,7 @@ import { MAX_WITNESSES, validateWitnessContent } from './witness.js';
 import { requestOf, validateApprovalContent } from './approval.js';
 import { compareWithSlip, newTally, settlePeriods } from './compare.js';
 import { validateRefusalContent, validateTermsContent } from './service.js';
-import { checkPasskeySignature, checkSlip } from './slip.js';
+import { checkOriginsOption, checkPasskeySignature, checkSlip } from './slip.js';
 import { validateCountersignatureContent, validateStubContent } from './stub.js';
 import { checkStamp } from './timestamp.js';
 import { inclusionPath, treeBuilder, treeRoot, verifyInclusion } from './tree.js';
@@ -456,7 +456,7 @@ function forkReader(reader, whole = false) {
 // worked out when it is asked for.
 // The fixed copies made so far. Nothing changes one once it is made.
 const FIXED = new WeakSet();
-const OPTION_NAMES = ['issuerKeys', 'sealKeys', 'stampServices', 'blocks', 'vouchers', 'witnesses', 'disclosures', 'cancellations', 'seals', 'expectedRoot', 'expectedSize', 'withoutMethods'];
+const OPTION_NAMES = ['issuerKeys', 'issuerOrigins', 'sealKeys', 'stampServices', 'blocks', 'vouchers', 'witnesses', 'disclosures', 'cancellations', 'seals', 'expectedRoot', 'expectedSize', 'withoutMethods'];
 
 /**
  * The options of a check, fixed: read once and copied, so that nothing done
@@ -2359,6 +2359,8 @@ function compareTrusted(result, options) {
  * @param {string} text the book
  * @param {object} [options]
  * @param {string[]} [options.issuerKeys] thumbprints of the issuer keys the checker expects
+ * @param {string[]} [options.issuerOrigins] the addresses of the pages at which the checker expects every slip to have been signed,
+ *   each in the form of section 4.1 (https://, a website name in lower case, a port only if needed). At most 64
  * @param {string} [options.expectedRoot] the top fingerprint the checker already trusts
  * @param {number} [options.expectedSize] the number of entries the checker already trusts
  * @param {string[]} [options.stampServices] the certificate fingerprints of the time-stamp services the checker trusts
@@ -2422,6 +2424,7 @@ export function startCarried(options = {}) {
   try {
     lookIntoOptions(options);
     checkBlocksOption(options);
+    checkOriginsOption(options);
     // Every line is read with this option, so one that cannot be read is a
     // problem with the whole check, found before any line is read.
     Array.isArray(options.withoutMethods);
@@ -2644,6 +2647,7 @@ export async function checkShow(show, options = {}) {
     }
     lookIntoOptions(options);
     checkBlocksOption(options);
+    checkOriginsOption(options);
     f.members(show, ['pages', 'root', 'size', 'type'], ['seal'], 'show');
     if (show.type !== 'provared.show.v0') throw f.fail('show.type', 'must be provared.show.v0.');
     f.wholeNumber(show.size, 'show.size');

@@ -7,7 +7,7 @@
 // is kept inside its own box, so that a record cannot hide, reorder or
 // draw over the words around it.
 
-import { DENIAL_SOURCES, REFUSAL_REASONS, conditionWords, limitWords, neverWords } from '../src/check.js';
+import { DENIAL_SOURCES, REFUSAL_REASONS, conditionWords, isPageAddress, limitWords, neverWords } from '../src/check.js';
 
 // The same holds for characters that cannot be seen (zero-width characters,
 // soft hyphens, line separators, fillers), with which two different labels
@@ -52,6 +52,20 @@ export function readFingerprints(text) {
 export function readBlocks(text) {
   const lines = String(text).split(/\s+/).filter((line) => line !== '');
   return { values: lines.filter((line) => /^[0-9a-fA-F]{64}$/.test(line)), bad: lines.filter((line) => !/^[0-9a-fA-F]{64}$/.test(line)) };
+}
+
+/**
+ * Read the box of page addresses, one to a line: the addresses at which the
+ * person expects the permissions to have been signed, each in the one form
+ * the format allows (https://, a website name in lower case, a port only if
+ * it is needed, and nothing more). As with the other boxes, a line that is
+ * not one is never dropped silently.
+ * @param {string} text
+ * @returns {{values: string[], bad: string[]}}
+ */
+export function readOrigins(text) {
+  const lines = String(text).split(/\s+/).filter((line) => line !== '');
+  return { values: lines.filter((line) => isPageAddress(line)), bad: lines.filter((line) => !isPageAddress(line)) };
 }
 
 /**

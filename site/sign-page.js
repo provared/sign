@@ -155,7 +155,7 @@ function page() {
     $(id).textContent = text;
   };
   const byItself = shownByItself(window);
-  const FRAMED = 'This page is shown inside another page, so it offers nothing to sign or cancel. Open prova.red/sign/ in a tab of its own.';
+  const FRAMED = 'This page is shown inside another page, so it offers nothing to sign or cancel. Open sign.prova.red in a tab of its own.';
 
   // What was read, and is what signs: the permission and the name.
   let fields = null;

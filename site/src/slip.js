@@ -22,21 +22,52 @@ const MAX_PERIOD_SECONDS = 366 * 86400;
 // begins or ends with a hyphen, and the last is not all digits. A browser
 // writes a page's address in exactly this form, with a name in another
 // script written in its "xn--" form, which the rule takes as it is.
+// eslint-disable-next-line security/detect-unsafe-regex -- each part has a bounded length, and a full stop or colon separates the parts.
 const ORIGIN = /^(https|http):\/\/([a-z0-9.-]{1,253})(?::([1-9][0-9]{0,4}))?$/;
+// eslint-disable-next-line security/detect-unsafe-regex -- a label has at most 63 characters.
 const LABEL = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
+
+// The scheme and the host of a text in the form above, or null where the
+// text is not in that form.
+function pageAddressParts(text) {
+  if (typeof text !== 'string') return null;
+  const m = ORIGIN.exec(text);
+  if (!m) return null;
+  const labels = m[2].split('.');
+  const port = m[3] !== undefined ? Number(m[3]) : null;
+  if (!labels.every((l) => LABEL.test(l)) || /^[0-9]+$/.test(labels[labels.length - 1]) || (port !== null && (port > 65535 || port === (m[1] === 'https' ? 443 : 80)))) {
+    return null;
+  }
+  return { scheme: m[1], host: m[2] };
+}
+
+/**
+ * Whether a text is the address of a page in the one form the format
+ * allows for a slip's "issuer.origin" (format description, section 4.1):
+ * "https://" (or "http://localhost"), a website name in lower case, a port
+ * only where it is needed, and nothing more. The addresses a reader names
+ * as the ones a permission must have been signed at (the option
+ * "issuerOrigins") must be in this form too, so that an address with a
+ * capital letter or a path is refused, and does not quietly match nothing.
+ * @param {unknown} text
+ * @returns {boolean}
+ */
+export function isPageAddress(text) {
+  const parts = pageAddressParts(text);
+  return parts !== null && (parts.scheme === 'https' || (parts.scheme === 'http' && parts.host === 'localhost'));
+}
 
 function checkOrigin(origin, rpId) {
   f.text(origin, 1, 300, 'issuer.origin');
+  // eslint-disable-next-line security/detect-unsafe-regex -- a name has at most 253 characters.
   if (typeof rpId !== 'string' || !/^[a-z0-9]([a-z0-9.-]{0,251}[a-z0-9])?$/.test(rpId)) {
     throw f.fail('issuer.rpId', 'must be a website name in lower case, such as example.org.');
   }
-  const m = ORIGIN.exec(origin);
-  const labels = m ? m[2].split('.') : [];
-  const port = m && m[3] !== undefined ? Number(m[3]) : null;
-  if (!m || !labels.every((l) => LABEL.test(l)) || /^[0-9]+$/.test(labels[labels.length - 1]) || (port !== null && (port > 65535 || port === (m[1] === 'https' ? 443 : 80)))) {
+  const parts = pageAddressParts(origin);
+  if (parts === null) {
     throw f.fail('issuer.origin', 'must be the address of a page: https://, a website name in lower case, a port only if it is needed, and nothing more, such as https://sign.example.org.');
   }
-  const [, scheme, host] = m;
+  const { scheme, host } = parts;
   if (!(scheme === 'https' || (scheme === 'http' && host === 'localhost'))) {
     throw f.fail('issuer.origin', 'must begin https://, or http://localhost.');
   }
@@ -47,6 +78,29 @@ function checkOrigin(origin, rpId) {
 
 /** Not part of the public interface: for the shared test files. */
 export const checkOriginForTests = checkOrigin;
+
+/** The most addresses a reader may name as the ones a permission must have been signed at. */
+export const MAX_ISSUER_ORIGINS = 64;
+
+/**
+ * The addresses a reader names as the ones a permission must have been
+ * signed at (the option "issuerOrigins"; format description, section 4.4):
+ * a list of at most 64, each in the form isPageAddress accepts. Anything
+ * else is refused, never set aside: an address with a capital letter or a
+ * path would match nothing, and every permission would then read as signed
+ * elsewhere. Every place in the list is read by its number, a gap included.
+ * @param {object} options the checker's options
+ * @throws {Refusal} "bad-field"
+ */
+export function checkOriginsOption(options) {
+  const { issuerOrigins } = options;
+  if (issuerOrigins === undefined) return;
+  let sound = Array.isArray(issuerOrigins) && issuerOrigins.length <= MAX_ISSUER_ORIGINS;
+  for (let i = 0; sound && i < issuerOrigins.length; i++) sound = isPageAddress(issuerOrigins[i]);
+  if (!sound) {
+    throw f.fail('issuerOrigins', 'must be a list of at most 64 page addresses, each https://, a website name in lower case, a port only if it is needed, and nothing more, such as https://sign.example.org.');
+  }
+}
 
 /**
  * Confirm a list of limits against the actions it may name (format
@@ -279,6 +333,7 @@ export async function preparePasskeyRecord(kind, content) {
  * @param {any} record the slip as a JavaScript object
  * @param {object} [options]
  * @param {string[]} [options.issuerKeys] thumbprints of the issuer keys the checker expects
+ * @param {string[]} [options.issuerOrigins] the addresses of the pages at which the checker expects the slip to have been signed, each in the form of section 4.1 (see isPageAddress)
  * @param {string[]} [options.withoutMethods] see verifySignature
  * @param {Record<string, string[]>} [options.disclosures] for covered fields: the disclosures handed over, by the fingerprint of the record they belong to
  * @param {string[]} [disclosures] the disclosures for this slip, where they come with it (a page of a Show)
@@ -348,6 +403,18 @@ export async function checkSlip(record, options = {}, disclosures) {
       }
     } else {
       result.notes.push('The issuer\'s key was not compared with a key you already trust. The name on the slip is only a label.');
+    }
+
+    // The address the slip was signed at, compared with the ones the reader
+    // named, where they named any (section 4.4). An approval and a
+    // cancellation are signed with the same passkey, and the passkey check
+    // holds each to the slip's address, so the slip's is the one compared.
+    if (options.issuerOrigins !== undefined) {
+      checkOriginsOption(options);
+      let named = false;
+      for (let i = 0; i < options.issuerOrigins.length; i++) if (options.issuerOrigins[i] === issuer.origin) named = true;
+      if (!named) throw new Refusal('issuer-origin-not-expected', 'The slip was signed at a page address other than the ones expected.');
+      result.notes.push(`This slip was signed at ${issuer.origin}, an address you named.`);
     }
   } catch (e) {
     result.problems.push(problemFrom(e));

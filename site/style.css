@@ -151,3 +151,10 @@ details.more textarea { width: 100%; box-sizing: border-box; font-family: ui-mon
 
 /* The mark: a permission slip with a signature, beside a heading or the site's name. */
 .mark { vertical-align: -0.2em; margin-right: 0.4em; }
+
+/* The signing page: the warnings before a passkey is asked, and what a
+   renewal changes against the earlier permission. */
+.warnings { margin: 0.8rem 0; padding: 0.6rem 0.9rem 0.6rem 2rem; border: 1px solid var(--bad); border-radius: 0.5rem; }
+.warnings li { margin: 0.3rem 0; }
+dt.changed { color: var(--seal); font-weight: 600; }
+#cancel-of, #issuer-name { max-width: 100%; box-sizing: border-box; }

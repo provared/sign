@@ -97,6 +97,17 @@ export function el(tag, className, text) {
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 /**
+ * The heading of the card of the top fingerprint. It names the Seal only
+ * where the record holds one: a book, or the pages of a Show, with no seal
+ * has a top fingerprint and no seal.
+ * @param {{summary?: {counts?: {seals?: number}}}} result the checker's answer
+ * @returns {string}
+ */
+export function topFingerprintHeading(result) {
+  return (result?.summary?.counts?.seals ?? 0) > 0 ? 'The top fingerprint (the Seal)' : 'The top fingerprint';
+}
+
+/**
  * A time from a record, in words. The checker has already confirmed its
  * form; anything else is shown as it is.
  * @param {string} time such as 2026-10-05T09:00:00Z
@@ -639,7 +650,7 @@ export function renderResult(target, result, { isShow = false, checkedBy = 'Chec
 
   if (result.root) {
     const seal = el('div', 'card seal');
-    seal.append(el('h3', 'kind', 'The top fingerprint (the Seal)'));
+    seal.append(el('h3', 'kind', topFingerprintHeading(result)));
     const list = el('dl');
     row(list, 'Top fingerprint', result.root, true);
     row(list, 'Entries in the book', String(result.size));

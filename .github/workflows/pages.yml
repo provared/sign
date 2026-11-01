@@ -1,6 +1,6 @@
 # Publishes https://sign.prova.red: the signing page of Provared and the
 # library files it loads, exactly as they are in the folder site/. Each file
-# is a copy of the same file at commit 18c0fe6e576cbe7a80b8b1fd54272c8abfc805b6 of provared/provared, and
+# is a copy of the same file at tag v0.8.0 of provared/provared, and
 # site/files.sha256 holds their fingerprints; the run stops if any file
 # differs from its fingerprint. Only GitHub's own actions are used, each
 # pinned to the commit of a released version, as in provared/provared.

@@ -16,7 +16,7 @@ never saw. The list of threats of Provared describes this in section 3.
 
 - `site/`: the signing page (`index.html`, `sign-page.js`, `render.js`,
   `style.css`) and the library's modules in `site/src/`. Each file is a
-  byte-for-byte copy of the same file at commit `18c0fe6e576cbe7a80b8b1fd54272c8abfc805b6` of
+  byte-for-byte copy of the same file at tag `v0.8.0` of
   https://github.com/provared/provared (`page/sign.html` is served here as
   `index.html`). `site/files.sha256` holds the SHA-256 fingerprint of each.
 - `.github/workflows/pages.yml`: checks every file against its
